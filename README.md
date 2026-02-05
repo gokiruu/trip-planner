@@ -1,147 +1,93 @@
-# TripPlanner - Collaborative Trip Planning App
+# TripPlanner
 
-A modern, collaborative trip planning application built with React, TypeScript, and custom CSS. Plan your trips with friends, manage expenses, create itineraries, and keep everything organized in one place.
+A trip planning app I built because I got tired of juggling Google Docs, Splitwise, and group chats every time my friends and I planned a trip. Now everything's in one place.
 
-## 🚀 Features
+## What it does
 
-### Core MVP Features
-- **Trip Management**: Create trips with dates, destinations, and travelers
-- **Itinerary Planning**: Day-by-day schedule with activities, restaurants, and hotels
-- **Expense Tracking**: Split costs between travelers with automatic balance calculations
-- **Packing Lists**: Shared checklists with progress tracking
-- **Documents & Info**: Store confirmations, links, and important trip information
+Plan trips with your friends without the chaos. You can:
+- Create trips and add your travel buddies
+- Build day-by-day itineraries with times and locations
+- Track expenses and split costs (no more awkward Venmo requests)
+- Make shared packing lists so someone remembers the chargers
+- Store all your confirmation numbers and important links
 
-### Key Highlights
-- ✅ **Fully Responsive**: Works seamlessly on desktop and mobile
-- ✅ **TypeScript**: Complete type safety throughout the application
-- ✅ **Modern UI**: Clean, intuitive interface with custom CSS utilities
-- ✅ **Real-time Updates**: Instant updates across all trip sections
-- ✅ **Sample Data**: Pre-loaded with example trip for testing
+There's a sample trip loaded up so you can click around and see how it works.
 
-## 🛠️ Tech Stack
+## Built with
 
-- **Frontend**: React 19, TypeScript
-- **Routing**: React Router DOM
-- **Styling**: Custom CSS utilities (Tailwind-inspired)
-- **Build Tool**: Create React App
-- **Future Backend**: AWS (planned)
+- React + TypeScript
+- React Router for navigation
+- Custom CSS (I wanted to practice without using a framework)
+- LocalStorage for now (AWS backend coming later)
 
-## 📦 Installation
+## Getting it running
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/tripplanner.git
-   cd tripplanner
-   ```
+```bash
+git clone https://github.com/gokiruu/tripplanner.git
+cd tripplanner
+npm install
+npm start
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+Then open [http://localhost:3000](http://localhost:3000) and you should see the sample trip.
 
-3. **Start the development server**
-   ```bash
-   npm start
-   ```
+## How to use it
 
-4. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+The sample trip is a weekend in Lisbon that shows you all the features. You can explore that or create your own trip.
 
-## 🎯 Usage
+Once you're in a trip, there are tabs for different things:
 
-### Getting Started
-1. **View Sample Trip**: Explore the pre-loaded "Weekend in Lisbon" trip
-2. **Create New Trip**: Click "Create New Trip" to start planning
-3. **Add Travelers**: Invite friends by adding their names and emails
-4. **Plan Your Trip**: Use the dashboard to navigate between sections
+**Dashboard** - Overview of your trip with quick stats
 
-### Trip Sections
+**Itinerary** - Add activities, restaurants, hotels, whatever. Organize by day and time. I added categories so you can filter by type.
 
-#### 📅 Itinerary
-- Add activities, restaurants, hotels, and transport
-- Organize by day with times and locations
-- Add notes and details for each item
+**Expenses** - This was the fun part to build. Add an expense, say who paid, select who it should be split between, and it calculates who owes who. The algorithm minimizes the number of payments needed (so instead of everyone paying everyone, it figures out the simplest way to settle up).
 
-#### 💰 Expenses
-- Track all trip expenses with categories
-- Split costs between travelers
-- View balances and who owes whom
-- Real-time expense calculations
+**Packing** - Shared checklist. You can assign items to people and check them off as you pack.
 
-#### 🎒 Packing
-- Create shared packing lists
-- Assign items to specific travelers
-- Track packing progress with visual indicators
-- Mark items as packed
+**Documents** - Store confirmation numbers, links to your Airbnb, flight info, etc. Basically anything you'd normally screenshot and lose in your camera roll.
 
-#### 📄 Documents
-- Store flight confirmations and hotel bookings
-- Organize by document type
-- Add external links and detailed information
-- Keep all important trip info in one place
-
-## 🏗️ Project Structure
+## Project structure
 
 ```
 src/
-├── components/          # React components
-│   ├── Layout.tsx      # Main layout with navigation
-│   ├── TripList.tsx    # Trip overview cards
-│   ├── CreateTrip.tsx  # Trip creation form
-│   ├── TripDashboard.tsx # Trip overview dashboard
-│   ├── Itinerary.tsx   # Day-by-day planning
-│   ├── Expenses.tsx    # Expense tracking & splitting
-│   ├── Packing.tsx     # Packing list management
-│   └── Documents.tsx   # Document storage
-├── types.ts            # TypeScript type definitions
-├── mockData.ts         # Sample data for testing
-├── App.tsx             # Main app component with routing
-├── index.css           # Custom CSS utilities
-└── index.tsx           # App entry point
+├── components/       # All the React components
+├── types.ts         # TypeScript definitions
+├── mockData.ts      # Sample trip data
+├── App.tsx          # Main app with routing
+└── index.css        # Custom utilities
 ```
 
-## 🔮 Future Enhancements
+Pretty standard React setup.
 
-### Backend Integration (AWS)
-- User authentication and profiles
-- Real-time collaboration
-- Data persistence
-- File uploads for documents
-- Email notifications
+## What's next
 
-### Additional Features
-- Weather integration
-- Map integration for locations
-- Budget tracking and alerts
-- Trip sharing and invitations
-- Mobile app (React Native)
-- Offline support
+I'm planning to add:
+- AWS backend (Lambda, DynamoDB, S3) for real multi-user support
+- User authentication with Cognito
+- Real-time updates when friends make changes
+- Maybe a mobile app version if I have time
 
-## 🤝 Contributing
+Right now it's just localStorage, so it's single-user and data doesn't persist across devices. Good enough for the MVP though.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Why I built this
 
-## 📝 Available Scripts
+I travel with friends pretty often and we always end up with:
+- A shared Google Doc for the itinerary (that gets messy)
+- Splitwise or a notes app for expenses (that someone forgets to update)
+- Random texts about "did anyone pack sunscreen?"
+- Screenshots of confirmations scattered across phones
 
-- `npm start` - Runs the app in development mode
-- `npm test` - Launches the test runner
-- `npm run build` - Builds the app for production
-- `npm run eject` - Ejects from Create React App (one-way operation)
+This just puts it all in one place. The expense splitting algorithm was particularly interesting to implement - it's basically a debt simplification problem.
 
-## 📄 License
+## Contributing
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+If you want to add features or fix bugs, feel free to fork it and open a PR. I'm still learning so feedback is welcome.
 
-## 🙏 Acknowledgments
+## License
 
-- Built with [Create React App](https://create-react-app.dev/)
-- Inspired by modern trip planning needs
-- Custom CSS utilities inspired by Tailwind CSS
+MIT - do whatever you want with it
 
 ---
 
-**Ready to plan your next adventure? Start exploring with the sample trip or create your own!** 🌍✈️
+Made this for a project but actually plan to use it for my next trip. If you end up using it, let me know how it goes!
