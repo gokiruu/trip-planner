@@ -1,46 +1,147 @@
-# Getting Started with Create React App
+# TripPlanner - Collaborative Trip Planning App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, collaborative trip planning application built with React, TypeScript, and custom CSS. Plan your trips with friends, manage expenses, create itineraries, and keep everything organized in one place.
 
-## Available Scripts
+## 🚀 Features
 
-In the project directory, you can run:
+### Core MVP Features
+- **Trip Management**: Create trips with dates, destinations, and travelers
+- **Itinerary Planning**: Day-by-day schedule with activities, restaurants, and hotels
+- **Expense Tracking**: Split costs between travelers with automatic balance calculations
+- **Packing Lists**: Shared checklists with progress tracking
+- **Documents & Info**: Store confirmations, links, and important trip information
 
-### `npm start`
+### Key Highlights
+- ✅ **Fully Responsive**: Works seamlessly on desktop and mobile
+- ✅ **TypeScript**: Complete type safety throughout the application
+- ✅ **Modern UI**: Clean, intuitive interface with custom CSS utilities
+- ✅ **Real-time Updates**: Instant updates across all trip sections
+- ✅ **Sample Data**: Pre-loaded with example trip for testing
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 🛠️ Tech Stack
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- **Frontend**: React 19, TypeScript
+- **Routing**: React Router DOM
+- **Styling**: Custom CSS utilities (Tailwind-inspired)
+- **Build Tool**: Create React App
+- **Future Backend**: AWS (planned)
 
-### `npm test`
+## 📦 Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/tripplanner.git
+   cd tripplanner
+   ```
 
-### `npm run build`
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Start the development server**
+   ```bash
+   npm start
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🎯 Usage
 
-### `npm run eject`
+### Getting Started
+1. **View Sample Trip**: Explore the pre-loaded "Weekend in Lisbon" trip
+2. **Create New Trip**: Click "Create New Trip" to start planning
+3. **Add Travelers**: Invite friends by adding their names and emails
+4. **Plan Your Trip**: Use the dashboard to navigate between sections
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Trip Sections
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+#### 📅 Itinerary
+- Add activities, restaurants, hotels, and transport
+- Organize by day with times and locations
+- Add notes and details for each item
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+#### 💰 Expenses
+- Track all trip expenses with categories
+- Split costs between travelers
+- View balances and who owes whom
+- Real-time expense calculations
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+#### 🎒 Packing
+- Create shared packing lists
+- Assign items to specific travelers
+- Track packing progress with visual indicators
+- Mark items as packed
 
-## Learn More
+#### 📄 Documents
+- Store flight confirmations and hotel bookings
+- Organize by document type
+- Add external links and detailed information
+- Keep all important trip info in one place
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🏗️ Project Structure
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+src/
+├── components/          # React components
+│   ├── Layout.tsx      # Main layout with navigation
+│   ├── TripList.tsx    # Trip overview cards
+│   ├── CreateTrip.tsx  # Trip creation form
+│   ├── TripDashboard.tsx # Trip overview dashboard
+│   ├── Itinerary.tsx   # Day-by-day planning
+│   ├── Expenses.tsx    # Expense tracking & splitting
+│   ├── Packing.tsx     # Packing list management
+│   └── Documents.tsx   # Document storage
+├── types.ts            # TypeScript type definitions
+├── mockData.ts         # Sample data for testing
+├── App.tsx             # Main app component with routing
+├── index.css           # Custom CSS utilities
+└── index.tsx           # App entry point
+```
+
+## 🔮 Future Enhancements
+
+### Backend Integration (AWS)
+- User authentication and profiles
+- Real-time collaboration
+- Data persistence
+- File uploads for documents
+- Email notifications
+
+### Additional Features
+- Weather integration
+- Map integration for locations
+- Budget tracking and alerts
+- Trip sharing and invitations
+- Mobile app (React Native)
+- Offline support
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 Available Scripts
+
+- `npm start` - Runs the app in development mode
+- `npm test` - Launches the test runner
+- `npm run build` - Builds the app for production
+- `npm run eject` - Ejects from Create React App (one-way operation)
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Create React App](https://create-react-app.dev/)
+- Inspired by modern trip planning needs
+- Custom CSS utilities inspired by Tailwind CSS
+
+---
+
+**Ready to plan your next adventure? Start exploring with the sample trip or create your own!** 🌍✈️
