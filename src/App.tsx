@@ -89,7 +89,8 @@ function AppContent() {
         ? JSON.stringify(value)
         : value;
     }
-    const { data: updated, errors } = await client.models.Trip.update(payload as Parameters<typeof client.models.Trip.update>[0]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: updated, errors } = await (client.models.Trip.update as any)(payload);
     if (errors?.length) { console.error('Update trip errors:', errors); return; }
     if (updated) {
       setTrips(prev => prev.map(t => t.id === tripId ? toTrip(updated as Schema['Trip']['type']) : t));
