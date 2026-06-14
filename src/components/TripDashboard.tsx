@@ -41,30 +41,37 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
   const daysUntil = getDaysUntil(trip.startDate);
   const collaborators = trip.collaborators.filter(collaborator => collaborator.ownerId !== currentOwnerId);
 
+  const packingPct = totalPackingItems > 0 ? Math.round((packedItems / totalPackingItems) * 100) : 0;
+
   const sections = [
     {
       title: 'Itinerary',
       path: `/trip/${tripId}/itinerary`,
-      description: `${trip.itinerary.length} activities planned`,
+      description: `${trip.itinerary.length} ${trip.itinerary.length === 1 ? 'activity' : 'activities'} planned`,
       meta: 'Plan',
+      accent: 'feature-card-itinerary',
     },
     {
       title: 'Expenses',
       path: `/trip/${tripId}/expenses`,
-      description: `$${totalExpenses.toFixed(2)} total spent`,
+      description: `$${totalExpenses.toFixed(2)} total`,
       meta: 'Split',
+      accent: 'feature-card-expenses',
     },
     {
       title: 'Packing',
       path: `/trip/${tripId}/packing`,
-      description: `${packedItems}/${totalPackingItems} items packed`,
+      description: `${packedItems} of ${totalPackingItems} items packed`,
       meta: 'Ready',
+      accent: 'feature-card-packing',
+      progress: packingPct,
     },
     {
       title: 'Documents',
       path: `/trip/${tripId}/documents`,
-      description: `${trip.documents.length} documents stored`,
+      description: `${trip.documents.length} ${trip.documents.length === 1 ? 'document' : 'documents'} saved`,
       meta: 'Store',
+      accent: 'feature-card-documents',
     },
   ];
 
@@ -82,47 +89,55 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
   return (
     <div>
       <div className="trip-hero mb-6">
-        <div className="flex justify-between items-start mb-4 trip-hero-content">
+        <div className="flex justify-between items-start mb-4">
           <div>
             <p className="eyebrow">Trip overview</p>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{trip.name}</h1>
-            <p className="text-xl text-gray-600 mb-2">{trip.destination}</p>
-            <p className="text-gray-500">
-              {formatDate(trip.startDate)} - {formatDate(trip.endDate)}
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">{trip.name}</h1>
+            <p className="text-xl text-gray-600 mb-1">{trip.destination}</p>
+            <p className="text-gray-500" style={{ fontSize: '0.9rem' }}>
+              {formatDate(trip.startDate)} &mdash; {formatDate(trip.endDate)}
             </p>
           </div>
-          <div className="text-right">
-            {daysUntil > 0 ? (
-              <div className="status-pill">{daysUntil} days to go</div>
-            ) : daysUntil === 0 ? (
-              <div className="status-pill">Starts today</div>
-            ) : (
-              <div className="status-pill">Trip completed</div>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <div className="flex -space-x-2">
-            {trip.travelers.slice(0, 3).map((traveler) => (
+          <div className="flex -space-x-2" style={{ flexShrink: 0, marginTop: '0.25rem' }}>
+            {trip.travelers.slice(0, 4).map((traveler) => (
               <div key={traveler.id} className="avatar" title={traveler.name}>
                 {traveler.name.charAt(0).toUpperCase()}
               </div>
             ))}
-            {trip.travelers.length > 3 && (
-              <div className="avatar avatar-muted">+{trip.travelers.length - 3}</div>
+            {trip.travelers.length > 4 && (
+              <div className="avatar avatar-muted">+{trip.travelers.length - 4}</div>
             )}
           </div>
-          <span className="text-gray-600">
-            {trip.travelers.length} traveler{trip.travelers.length > 1 ? 's' : ''}
-          </span>
         </div>
 
         {trip.notes && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-gray-700">{trip.notes}</p>
-          </div>
+          <p style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.75)', marginTop: '0.5rem' }}>
+            {trip.notes}
+          </p>
         )}
+
+        <div className="hero-stats">
+          <div>
+            <span className="hero-stat-value">
+              {daysUntil > 0 ? daysUntil : daysUntil === 0 ? 0 : Math.abs(daysUntil)}
+            </span>
+            <span className="hero-stat-label">
+              {daysUntil > 0 ? 'Days to go' : daysUntil === 0 ? 'Starts today' : 'Days ago'}
+            </span>
+          </div>
+          <div>
+            <span className="hero-stat-value">{trip.travelers.length}</span>
+            <span className="hero-stat-label">Travelers</span>
+          </div>
+          <div>
+            <span className="hero-stat-value">${totalExpenses.toFixed(0)}</span>
+            <span className="hero-stat-label">Spent</span>
+          </div>
+          <div>
+            <span className="hero-stat-value">{packingPct}%</span>
+            <span className="hero-stat-label">Packed</span>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
@@ -208,10 +223,15 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {sections.map((section) => (
-          <Link key={section.title} to={section.path} className="feature-card">
+          <Link key={section.title} to={section.path} className={`feature-card ${section.accent}`}>
             <div className="feature-kicker">{section.meta}</div>
             <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
             <p className="text-sm opacity-80">{section.description}</p>
+            {section.progress !== undefined && (
+              <div className="packing-bar-track">
+                <div className="packing-bar-fill" style={{ width: `${section.progress}%` }} />
+              </div>
+            )}
           </Link>
         ))}
       </div>

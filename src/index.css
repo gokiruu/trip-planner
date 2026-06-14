@@ -331,6 +331,7 @@ button {
   background: var(--color-surface);
   border-radius: 0.625rem;
   border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-border);
   box-shadow: var(--shadow-sm);
   padding: 1.5rem;
   transition: box-shadow 0.2s ease, transform 0.15s ease;
@@ -340,6 +341,32 @@ button {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
+
+.trip-card.upcoming { border-top-color: var(--color-primary); }
+.trip-card.active   { border-top-color: var(--color-success); }
+.trip-card.past     { border-top-color: #94a3b8; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--color-surface);
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+}
+
+.empty-state-icon {
+  width: 4rem;
+  height: 4rem;
+  background: var(--color-primary-light);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.empty-state-icon svg { width: 1.75rem; height: 1.75rem; color: var(--color-primary); }
 
 .trip-status-badge {
   display: inline-block;
@@ -365,6 +392,38 @@ button {
   padding: 2rem;
   color: white;
   margin-bottom: 1.5rem;
+}
+
+/* Stats strip inside the hero */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 600px) {
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+.hero-stat-value {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+
+.hero-stat-label {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 0.3rem;
 }
 
 .trip-hero h1,
@@ -478,9 +537,9 @@ button {
   left: 0;
   width: 3px;
   height: 100%;
-  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-teal) 100%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
+  background: var(--card-accent, var(--color-primary));
+  opacity: 1;
+  transition: width 0.2s ease;
 }
 
 .feature-card:hover {
@@ -488,7 +547,7 @@ button {
   transform: translateY(-2px);
 }
 
-.feature-card:hover::before { opacity: 1; }
+.feature-card:hover::before { width: 5px; }
 .feature-card h3 { color: var(--color-text); margin: 0 0 0.5rem; }
 .feature-card p  { color: var(--color-text-secondary); margin: 0; font-size: 0.875rem; }
 
@@ -497,8 +556,30 @@ button {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-primary);
+  color: var(--card-accent, var(--color-primary));
   margin-bottom: 0.5rem;
+}
+
+/* Per-section accent colors */
+.feature-card-itinerary { --card-accent: #4f46e5; }
+.feature-card-expenses  { --card-accent: #d97706; }
+.feature-card-packing   { --card-accent: #059669; }
+.feature-card-documents { --card-accent: #7c3aed; }
+
+/* Packing progress bar inside feature card */
+.packing-bar-track {
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 0.75rem;
+}
+
+.packing-bar-fill {
+  height: 100%;
+  background: #059669;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
 }
 
 /* ================================================

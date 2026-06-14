@@ -48,11 +48,21 @@ export const TripList: React.FC<TripListProps> = ({ trips }) => {
       </div>
 
       {trips.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 mb-4">No trips planned yet</p>
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+              <circle cx="12" cy="9" r="2.5"/>
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No trips yet</h2>
+          <p className="text-gray-500 mb-6" style={{ maxWidth: '24rem', margin: '0 auto 1.5rem' }}>
+            Start planning your next adventure. Add destinations, travelers, expenses, and more.
+          </p>
           <Link
             to="/create"
             className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+            style={{ display: 'inline-block' }}
           >
             Plan Your First Trip
           </Link>
@@ -62,7 +72,7 @@ export const TripList: React.FC<TripListProps> = ({ trips }) => {
           {trips.map((trip) => {
             const status = getTripStatus(trip.startDate, trip.endDate);
             return (
-              <Link key={trip.id} to={`/trip/${trip.id}`} className="trip-card">
+              <Link key={trip.id} to={`/trip/${trip.id}`} className={`trip-card ${status}`}>
                 <span className={`trip-status-badge ${status}`}>
                   {statusLabel[status]}
                 </span>
