@@ -70,7 +70,7 @@ function AppContent() {
       documents: tripData.documents,
       notes: tripData.notes,
     });
-    if (errors) { console.error(errors); return; }
+    if (errors?.length) throw new Error(errors.map(e => e.message).join('; '));
     if (newTrip) {
       const trip = toTrip(newTrip as Schema['Trip']['type']);
       setTrips(prev => [...prev, trip]);

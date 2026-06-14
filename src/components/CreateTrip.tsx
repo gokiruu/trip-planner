@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Trip, Traveler } from '../types';
 
 interface CreateTripProps {
-  onCreateTrip: (trip: Omit<Trip, 'id'>) => void;
+  onCreateTrip: (trip: Omit<Trip, 'id'>) => Promise<void>;
 }
 
 export const CreateTrip: React.FC<CreateTripProps> = ({ onCreateTrip }) => {
@@ -16,10 +16,14 @@ export const CreateTrip: React.FC<CreateTripProps> = ({ onCreateTrip }) => {
   const [travelers, setTravelers] = useState<Omit<Traveler, 'id'>[]>([
     { name: '', email: '' }
   ]);
+  const [submitting, setSubmitting] = useState(false);
+  const [createError, setCreateError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setCreateError('');
+    setSubmitting(true);
+
     const travelersWithIds: Traveler[] = travelers
       .filter(t => t.name.trim())
       .map((t, index) => ({
@@ -39,7 +43,12 @@ export const CreateTrip: React.FC<CreateTripProps> = ({ onCreateTrip }) => {
       documents: []
     };
 
-    onCreateTrip(newTrip);
+    try {
+      await onCreateTrip(newTrip);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : 'Failed to create trip. Please try again.');
+      setSubmitting(false);
+    }
   };
 
   const addTraveler = () => {
@@ -185,12 +194,17 @@ export const CreateTrip: React.FC<CreateTripProps> = ({ onCreateTrip }) => {
           </div>
         </div>
 
+        {createError && (
+          <p className="text-red-600 text-sm">{createError}</p>
+        )}
         <div className="flex gap-3">
           <button
             type="submit"
+            disabled={submitting}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            style={{ opacity: submitting ? 0.7 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}
           >
-            Create Trip
+            {submitting ? 'Creating...' : 'Create Trip'}
           </button>
           <button
             type="button"
