@@ -14,12 +14,16 @@ export const Itinerary: React.FC<ItineraryProps> = ({ trip, onUpdateItinerary })
     type: 'activity',
     startTime: '',
     location: '',
-    notes: ''
+    notes: '',
+    link: '',
+    photoUrl: ''
   });
 
+  const parseLocalDate = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+
   const getTripDays = () => {
-    const start = new Date(trip.startDate);
-    const end = new Date(trip.endDate);
+    const start = parseLocalDate(trip.startDate);
+    const end = parseLocalDate(trip.endDate);
     const days = [];
     
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
@@ -54,11 +58,13 @@ export const Itinerary: React.FC<ItineraryProps> = ({ trip, onUpdateItinerary })
       type: newItem.type || 'activity',
       startTime: newItem.startTime || undefined,
       location: newItem.location || undefined,
-      notes: newItem.notes || undefined
+      notes: newItem.notes || undefined,
+      link: newItem.link || undefined,
+      photoUrl: newItem.photoUrl || undefined,
     };
 
     onUpdateItinerary([...trip.itinerary, item]);
-    setNewItem({ day: 1, title: '', type: 'activity', startTime: '', location: '', notes: '' });
+    setNewItem({ day: 1, title: '', type: 'activity', startTime: '', location: '', notes: '', link: '', photoUrl: '' });
     setShowAddForm(false);
   };
 
@@ -162,6 +168,26 @@ export const Itinerary: React.FC<ItineraryProps> = ({ trip, onUpdateItinerary })
                 placeholder="Additional notes..."
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Link</label>
+              <input
+                type="url"
+                value={newItem.link}
+                onChange={(e) => setNewItem({ ...newItem, link: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="https://booking.com/..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Photo URL</label>
+              <input
+                type="url"
+                value={newItem.photoUrl}
+                onChange={(e) => setNewItem({ ...newItem, photoUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="https://..."
+              />
+            </div>
           </div>
           <div className="flex gap-3 mt-4">
             <button
@@ -216,6 +242,14 @@ export const Itinerary: React.FC<ItineraryProps> = ({ trip, onUpdateItinerary })
                           )}
                           {item.notes && (
                             <p className="text-sm text-gray-700 mt-2">{item.notes}</p>
+                          )}
+                          {item.link && (
+                            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline mt-1 block">
+                              View link
+                            </a>
+                          )}
+                          {item.photoUrl && (
+                            <img src={item.photoUrl} alt={item.title} className="mt-2 rounded-lg max-h-40 object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                           )}
                         </div>
                       </div>

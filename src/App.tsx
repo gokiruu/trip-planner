@@ -97,6 +97,12 @@ function AppContent() {
     }
   };
 
+  const deleteTrip = async (tripId: string) => {
+    await client.models.Trip.delete({ id: tripId });
+    setTrips(prev => prev.filter(t => t.id !== tripId));
+    navigate('/');
+  };
+
   const shareTrip = async (tripId: string, collaborator: Omit<Collaborator, 'id' | 'invitedAt'>) => {
     const trip = trips.find(t => t.id === tripId);
     const ownerId = collaborator.ownerId.trim();
@@ -157,6 +163,7 @@ function AppContent() {
                   currentOwnerId={currentOwnerId}
                   onShareTrip={(collaborator) => shareTrip(trip.id, collaborator)}
                   onRemoveCollaborator={(ownerId) => removeCollaborator(trip.id, ownerId)}
+                  onDeleteTrip={() => deleteTrip(trip.id)}
                 />
               )}
             </TripWrapper>

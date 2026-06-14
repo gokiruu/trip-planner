@@ -22,6 +22,8 @@ export interface ItineraryItem {
   endTime?: string
   location?: string
   notes?: string
+  link?: string
+  photoUrl?: string
 }
 
 export interface ExpenseShare {

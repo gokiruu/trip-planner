@@ -7,6 +7,7 @@ interface TripDashboardProps {
   currentOwnerId: string;
   onShareTrip: (collaborator: Omit<Collaborator, 'id' | 'invitedAt'>) => void;
   onRemoveCollaborator: (ownerId: string) => void;
+  onDeleteTrip: () => void;
 }
 
 export const TripDashboard: React.FC<TripDashboardProps> = ({
@@ -14,13 +15,16 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
   currentOwnerId,
   onShareTrip,
   onRemoveCollaborator,
+  onDeleteTrip,
 }) => {
   const { tripId } = useParams();
   const [showShareForm, setShowShareForm] = useState(false);
   const [shareForm, setShareForm] = useState({ ownerId: '', name: '', email: '' });
 
+  const parseLocalDate = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return parseLocalDate(date).toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -30,7 +34,7 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
 
   const getDaysUntil = (date: string) => {
     const today = new Date();
-    const tripDate = new Date(date);
+    const tripDate = parseLocalDate(date);
     const diffTime = tripDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
@@ -98,15 +102,23 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
               {formatDate(trip.startDate)} &mdash; {formatDate(trip.endDate)}
             </p>
           </div>
-          <div className="flex -space-x-2" style={{ flexShrink: 0, marginTop: '0.25rem' }}>
-            {trip.travelers.slice(0, 4).map((traveler) => (
-              <div key={traveler.id} className="avatar" title={traveler.name}>
-                {traveler.name.charAt(0).toUpperCase()}
-              </div>
-            ))}
-            {trip.travelers.length > 4 && (
-              <div className="avatar avatar-muted">+{trip.travelers.length - 4}</div>
-            )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', flexShrink: 0, marginTop: '0.25rem' }}>
+            <button
+              onClick={() => { if (window.confirm('Delete this trip? This cannot be undone.')) onDeleteTrip(); }}
+              style={{ background: 'rgba(239,68,68,0.15)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '0.5rem', padding: '0.35rem 0.85rem', fontSize: '0.8rem', cursor: 'pointer' }}
+            >
+              Delete trip
+            </button>
+            <div className="flex -space-x-2">
+              {trip.travelers.slice(0, 4).map((traveler) => (
+                <div key={traveler.id} className="avatar" title={traveler.name}>
+                  {traveler.name.charAt(0).toUpperCase()}
+                </div>
+              ))}
+              {trip.travelers.length > 4 && (
+                <div className="avatar avatar-muted">+{trip.travelers.length - 4}</div>
+              )}
+            </div>
           </div>
         </div>
 

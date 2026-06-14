@@ -7,8 +7,10 @@ interface TripListProps {
 }
 
 export const TripList: React.FC<TripListProps> = ({ trips }) => {
+  const parseLocalDate = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return parseLocalDate(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -16,8 +18,8 @@ export const TripList: React.FC<TripListProps> = ({ trips }) => {
   };
 
   const getDuration = (startDate: string, endDate: string) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = parseLocalDate(startDate);
+    const end = parseLocalDate(endDate);
     const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     return `${days} day${days !== 1 ? 's' : ''}`;
   };
@@ -25,8 +27,8 @@ export const TripList: React.FC<TripListProps> = ({ trips }) => {
   const getTripStatus = (startDate: string, endDate: string): 'upcoming' | 'active' | 'past' => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = parseLocalDate(startDate);
+    const end = parseLocalDate(endDate);
     end.setHours(23, 59, 59);
     if (today < start) return 'upcoming';
     if (today > end) return 'past';

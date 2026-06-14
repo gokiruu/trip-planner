@@ -10,7 +10,6 @@ export const Expenses: React.FC<ExpensesProps> = ({ trip, onUpdateExpenses }) =>
   const [showAddForm, setShowAddForm] = useState(false);
   const [newExpense, setNewExpense] = useState<Partial<Expense>>({
     description: '',
-    amount: 0,
     payerId: trip.travelers[0]?.id || '',
     participantIds: trip.travelers.map(t => t.id),
     category: 'other'
@@ -39,7 +38,6 @@ export const Expenses: React.FC<ExpensesProps> = ({ trip, onUpdateExpenses }) =>
     onUpdateExpenses([...trip.expenses, expense]);
     setNewExpense({
       description: '',
-      amount: 0,
       payerId: trip.travelers[0]?.id || '',
       participantIds: trip.travelers.map(t => t.id),
       category: 'other'
@@ -164,8 +162,9 @@ export const Expenses: React.FC<ExpensesProps> = ({ trip, onUpdateExpenses }) =>
                 <input
                   type="number"
                   step="0.01"
-                  value={newExpense.amount}
-                  onChange={(e) => setNewExpense({ ...newExpense, amount: parseFloat(e.target.value) || 0 })}
+                  min="0"
+                  value={newExpense.amount ?? ''}
+                  onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
                 />
