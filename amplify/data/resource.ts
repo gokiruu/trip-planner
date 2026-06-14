@@ -13,10 +13,18 @@ const schema = a.schema({
     expenses: a.string(),
     packing: a.string(),
     documents: a.string(),
+    proposals: a.string(),
     notes: a.string(),
   }).authorization(allow => [
     allow.owner(),
     allow.ownersDefinedIn('owners'),
+  ]),
+  UserProfile: a.model({
+    nickname: a.string(),
+    bio: a.string(),
+    avatarKey: a.string(),
+  }).authorization(allow => [
+    allow.owner(),
   ]),
 });
 

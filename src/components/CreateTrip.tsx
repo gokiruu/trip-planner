@@ -40,7 +40,8 @@ export const CreateTrip: React.FC<CreateTripProps> = ({ onCreateTrip }) => {
       itinerary: [],
       expenses: [],
       packing: [],
-      documents: []
+      documents: [],
+      proposals: []
     };
 
     try {

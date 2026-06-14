@@ -41,7 +41,7 @@ export interface Expense {
   participantIds: string[]
   splits?: ExpenseShare[]
   category?: string
-  receiptUrl?: string
+  photoKey?: string
 }
 
 export interface PackingItem {
@@ -59,6 +59,17 @@ export interface DocumentItem {
   type?: string
   info?: string
   link?: string
+  fileKey?: string
+}
+
+export interface Proposal {
+  id: string
+  title: string
+  description?: string
+  link?: string
+  proposedByUserId: string
+  votes: Record<string, 'yes' | 'no' | 'maybe'>
+  createdAt: string
 }
 
 export interface Trip {
@@ -74,6 +85,7 @@ export interface Trip {
   expenses: Expense[]
   packing: PackingItem[]
   documents: DocumentItem[]
+  proposals: Proposal[]
   notes?: string
 }
 

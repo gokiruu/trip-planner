@@ -12,6 +12,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, onSignOut }) => {
   const navItems = [
     { path: '/', label: 'My Trips' },
     { path: '/create', label: 'New Trip' },
+    { path: '/profile', label: 'Profile' },
   ];
 
   return (

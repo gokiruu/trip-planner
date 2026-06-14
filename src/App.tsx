@@ -12,12 +12,13 @@ import { Itinerary } from './components/Itinerary';
 import { Expenses } from './components/Expenses';
 import { Packing } from './components/Packing';
 import { Documents } from './components/Documents';
-import { Trip, Traveler, ItineraryItem, Expense, PackingItem, DocumentItem, Collaborator } from './types';
+import { Profile } from './components/Profile';
+import { Trip, Traveler, ItineraryItem, Expense, PackingItem, DocumentItem, Collaborator, Proposal } from './types';
 import type { Schema } from '../amplify/data/resource';
 
 const client = generateClient<Schema>();
 
-// Array fields are stored as JSON strings (a.string()) to avoid AWSJSON validation issues.
+// Array fields stored as JSON strings in DynamoDB
 function parseArr<T>(value: string | null | undefined): T[] {
   if (!value) return [];
   try { return JSON.parse(value) as T[]; }
@@ -38,9 +39,15 @@ function toTrip(raw: Schema['Trip']['type']): Trip {
     expenses: parseArr<Expense>(raw.expenses),
     packing: parseArr<PackingItem>(raw.packing),
     documents: parseArr<DocumentItem>(raw.documents),
+    proposals: parseArr<Proposal>(raw.proposals),
     notes: raw.notes ?? undefined,
   };
 }
+
+const JSON_ARRAY_FIELDS = new Set([
+  'collaborators', 'travelers', 'itinerary', 'expenses',
+  'packing', 'documents', 'proposals',
+]);
 
 function AppContent() {
   const { signOut } = useAuthenticator();
@@ -50,10 +57,7 @@ function AppContent() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    Promise.all([
-      getCurrentUser(),
-      client.models.Trip.list(),
-    ])
+    Promise.all([getCurrentUser(), client.models.Trip.list()])
       .then(([user, { data }]) => {
         setCurrentOwnerId(user.userId);
         setTrips(data.map(toTrip));
@@ -80,8 +84,6 @@ function AppContent() {
     }
   };
 
-  const JSON_ARRAY_FIELDS = new Set(['collaborators', 'travelers', 'itinerary', 'expenses', 'packing', 'documents']);
-
   const updateTrip = async (tripId: string, updates: Partial<Trip>) => {
     const payload: Record<string, unknown> = { id: tripId };
     for (const [key, value] of Object.entries(updates)) {
@@ -107,29 +109,20 @@ function AppContent() {
     const trip = trips.find(t => t.id === tripId);
     const ownerId = collaborator.ownerId.trim();
     if (!trip || !ownerId) return;
-
     const owners = Array.from(new Set([...trip.owners, currentOwnerId, ownerId].filter(Boolean)));
     const collaborators = [
       ...trip.collaborators.filter(item => item.ownerId !== ownerId),
-      {
-        ...collaborator,
-        id: `collab_${Date.now()}`,
-        ownerId,
-        invitedAt: new Date().toISOString(),
-      },
+      { ...collaborator, id: `collab_${Date.now()}`, ownerId, invitedAt: new Date().toISOString() },
     ];
-
     await updateTrip(tripId, { owners, collaborators });
   };
 
   const removeCollaborator = async (tripId: string, ownerId: string) => {
     const trip = trips.find(t => t.id === tripId);
     if (!trip || ownerId === currentOwnerId) return;
-
-    const newCollaborators = trip.collaborators.filter(item => item.ownerId !== ownerId);
     await updateTrip(tripId, {
       owners: trip.owners.filter(id => id !== ownerId),
-      collaborators: newCollaborators,
+      collaborators: trip.collaborators.filter(item => item.ownerId !== ownerId),
     });
   };
 
@@ -142,7 +135,7 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#6b7280' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: 'var(--color-text-muted)' }}>
         Loading trips...
       </div>
     );
@@ -153,6 +146,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<TripList trips={trips} />} />
         <Route path="/create" element={<CreateTrip onCreateTrip={handleCreateTrip} />} />
+        <Route path="/profile" element={<Profile currentUserId={currentOwnerId} />} />
         <Route
           path="/trip/:tripId"
           element={
@@ -161,8 +155,8 @@ function AppContent() {
                 <TripDashboard
                   trip={trip}
                   currentOwnerId={currentOwnerId}
-                  onShareTrip={(collaborator) => shareTrip(trip.id, collaborator)}
-                  onRemoveCollaborator={(ownerId) => removeCollaborator(trip.id, ownerId)}
+                  onShareTrip={(c) => shareTrip(trip.id, c)}
+                  onRemoveCollaborator={(id) => removeCollaborator(trip.id, id)}
                   onDeleteTrip={() => deleteTrip(trip.id)}
                   onUpdateTravelers={(travelers) => updateTrip(trip.id, { travelers })}
                 />
@@ -177,9 +171,9 @@ function AppContent() {
               {(trip) => (
                 <Itinerary
                   trip={trip}
-                  onUpdateItinerary={(items: ItineraryItem[]) =>
-                    updateTrip(trip.id, { itinerary: items })
-                  }
+                  currentUserId={currentOwnerId}
+                  onUpdateItinerary={(items: ItineraryItem[]) => updateTrip(trip.id, { itinerary: items })}
+                  onUpdateProposals={(proposals: Proposal[]) => updateTrip(trip.id, { proposals })}
                 />
               )}
             </TripWrapper>
@@ -192,9 +186,7 @@ function AppContent() {
               {(trip) => (
                 <Expenses
                   trip={trip}
-                  onUpdateExpenses={(expenses: Expense[]) =>
-                    updateTrip(trip.id, { expenses })
-                  }
+                  onUpdateExpenses={(expenses: Expense[]) => updateTrip(trip.id, { expenses })}
                 />
               )}
             </TripWrapper>
@@ -207,9 +199,7 @@ function AppContent() {
               {(trip) => (
                 <Packing
                   trip={trip}
-                  onUpdatePacking={(items: PackingItem[]) =>
-                    updateTrip(trip.id, { packing: items })
-                  }
+                  onUpdatePacking={(items: PackingItem[]) => updateTrip(trip.id, { packing: items })}
                 />
               )}
             </TripWrapper>
@@ -222,9 +212,7 @@ function AppContent() {
               {(trip) => (
                 <Documents
                   trip={trip}
-                  onUpdateDocuments={(documents: DocumentItem[]) =>
-                    updateTrip(trip.id, { documents })
-                  }
+                  onUpdateDocuments={(documents: DocumentItem[]) => updateTrip(trip.id, { documents })}
                 />
               )}
             </TripWrapper>
