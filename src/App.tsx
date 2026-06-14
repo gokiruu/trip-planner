@@ -27,7 +27,7 @@ function parseJsonArr<T>(value: unknown): T[] {
   return [];
 }
 
-function wrapJsonArr<T>(arr: T[]): Record<string, unknown> | undefined {
+function wrapJsonArr(arr: unknown[]): Record<string, unknown> | undefined {
   return arr.length > 0 ? { items: arr } : undefined;
 }
 
