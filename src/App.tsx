@@ -105,6 +105,20 @@ function AppContent() {
     navigate('/');
   };
 
+  const sendInvite = async (email: string, tripName: string) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (client as any).mutations.sendTripInvite({
+        email,
+        tripName,
+        inviterName: 'Your travel buddy',
+        appUrl: window.location.origin,
+      });
+    } catch (e) {
+      console.warn('Invite email failed (SES may not be configured yet):', e);
+    }
+  };
+
   const shareTrip = async (tripId: string, collaborator: Omit<Collaborator, 'id' | 'invitedAt'>) => {
     const trip = trips.find(t => t.id === tripId);
     const ownerId = collaborator.ownerId.trim();
@@ -159,6 +173,7 @@ function AppContent() {
                   onRemoveCollaborator={(id) => removeCollaborator(trip.id, id)}
                   onDeleteTrip={() => deleteTrip(trip.id)}
                   onUpdateTravelers={(travelers) => updateTrip(trip.id, { travelers })}
+                  onSendInvite={(email) => sendInvite(email, trip.name)}
                 />
               )}
             </TripWrapper>
@@ -212,6 +227,7 @@ function AppContent() {
               {(trip) => (
                 <Documents
                   trip={trip}
+                  currentUserId={currentOwnerId}
                   onUpdateDocuments={(documents: DocumentItem[]) => updateTrip(trip.id, { documents })}
                 />
               )}

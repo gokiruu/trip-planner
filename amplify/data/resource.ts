@@ -1,4 +1,5 @@
 import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
+import { sendInviteEmail } from '../functions/sendInviteEmail/resource.ts';
 
 const schema = a.schema({
   Trip: a.model({
@@ -26,6 +27,16 @@ const schema = a.schema({
   }).authorization(allow => [
     allow.owner(),
   ]),
+  sendTripInvite: a.mutation()
+    .arguments({
+      email: a.string().required(),
+      tripName: a.string().required(),
+      inviterName: a.string().required(),
+      appUrl: a.string().required(),
+    })
+    .returns(a.boolean())
+    .handler(a.handler.function(sendInviteEmail))
+    .authorization(allow => [allow.authenticated()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

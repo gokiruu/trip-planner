@@ -2,6 +2,7 @@ export interface Traveler {
   id: string
   name: string
   email?: string
+  photoKey?: string
 }
 
 export interface Collaborator {
@@ -60,6 +61,8 @@ export interface DocumentItem {
   info?: string
   link?: string
   fileKey?: string
+  uploadedBy?: string
+  uploadedAt?: string
 }
 
 export interface Proposal {
@@ -67,6 +70,8 @@ export interface Proposal {
   title: string
   description?: string
   link?: string
+  hasCost?: boolean
+  estimatedCost?: number
   proposedByUserId: string
   votes: Record<string, 'yes' | 'no' | 'maybe'>
   createdAt: string
