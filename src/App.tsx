@@ -62,13 +62,8 @@ function AppContent() {
       startDate: tripData.startDate,
       endDate: tripData.endDate,
       owners: currentOwnerId ? [currentOwnerId] : undefined,
-      collaborators: [],
-      travelers: tripData.travelers,
-      itinerary: tripData.itinerary,
-      expenses: tripData.expenses,
-      packing: tripData.packing,
-      documents: tripData.documents,
-      notes: tripData.notes,
+      travelers: tripData.travelers.length > 0 ? tripData.travelers : undefined,
+      notes: tripData.notes || undefined,
     });
     if (errors?.length) throw new Error(errors.map(e => e.message).join('; '));
     if (newTrip) {
