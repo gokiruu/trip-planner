@@ -18,8 +18,9 @@ export const Expenses: React.FC<ExpensesProps> = ({ trip, onUpdateExpenses }) =>
 
   const handleAddExpense = () => {
     if (!newExpense.description || !newExpense.amount || !newExpense.payerId) return;
+    if (!newExpense.participantIds?.length) return;
 
-    const splitAmount = newExpense.amount / newExpense.participantIds!.length;
+    const splitAmount = newExpense.amount / newExpense.participantIds.length;
     const expense: Expense = {
       id: `exp_${Date.now()}`,
       description: newExpense.description,

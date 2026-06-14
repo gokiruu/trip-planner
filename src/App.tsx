@@ -104,9 +104,10 @@ function AppContent() {
     const trip = trips.find(t => t.id === tripId);
     if (!trip || ownerId === currentOwnerId) return;
 
+    const newCollaborators = trip.collaborators.filter(item => item.ownerId !== ownerId);
     await updateTrip(tripId, {
       owners: trip.owners.filter(id => id !== ownerId),
-      collaborators: trip.collaborators.filter(item => item.ownerId !== ownerId),
+      collaborators: newCollaborators,
     });
   };
 
