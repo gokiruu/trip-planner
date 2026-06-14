@@ -4,6 +4,14 @@ export interface Traveler {
   email?: string
 }
 
+export interface Collaborator {
+  id: string
+  name?: string
+  email?: string
+  ownerId: string
+  invitedAt: string
+}
+
 export interface ItineraryItem {
   id: string
   day: number
@@ -57,6 +65,8 @@ export interface Trip {
   destination: string
   startDate: string
   endDate: string
+  owners: string[]
+  collaborators: Collaborator[]
   travelers: Traveler[]
   itinerary: ItineraryItem[]
   expenses: Expense[]

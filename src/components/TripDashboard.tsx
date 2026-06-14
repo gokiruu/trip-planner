@@ -1,20 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Trip } from '../types';
+import { Collaborator, Trip } from '../types';
 
 interface TripDashboardProps {
   trip: Trip;
+  currentOwnerId: string;
+  onShareTrip: (collaborator: Omit<Collaborator, 'id' | 'invitedAt'>) => void;
+  onRemoveCollaborator: (ownerId: string) => void;
 }
 
-export const TripDashboard: React.FC<TripDashboardProps> = ({ trip }) => {
+export const TripDashboard: React.FC<TripDashboardProps> = ({
+  trip,
+  currentOwnerId,
+  onShareTrip,
+  onRemoveCollaborator,
+}) => {
   const { tripId } = useParams();
+  const [showShareForm, setShowShareForm] = useState(false);
+  const [shareForm, setShareForm] = useState({ ownerId: '', name: '', email: '' });
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
@@ -22,52 +32,59 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({ trip }) => {
     const today = new Date();
     const tripDate = new Date(date);
     const diffTime = tripDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
   const totalExpenses = trip.expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const packedItems = trip.packing.filter(item => item.packed).length;
   const totalPackingItems = trip.packing.length;
+  const daysUntil = getDaysUntil(trip.startDate);
+  const collaborators = trip.collaborators.filter(collaborator => collaborator.ownerId !== currentOwnerId);
 
   const sections = [
     {
       title: 'Itinerary',
-      icon: '📅',
       path: `/trip/${tripId}/itinerary`,
       description: `${trip.itinerary.length} activities planned`,
-      color: 'bg-blue-50 text-blue-700 border-blue-200'
+      meta: 'Plan',
     },
     {
       title: 'Expenses',
-      icon: '💰',
       path: `/trip/${tripId}/expenses`,
       description: `$${totalExpenses.toFixed(2)} total spent`,
-      color: 'bg-green-50 text-green-700 border-green-200'
+      meta: 'Split',
     },
     {
       title: 'Packing',
-      icon: '🎒',
       path: `/trip/${tripId}/packing`,
       description: `${packedItems}/${totalPackingItems} items packed`,
-      color: 'bg-purple-50 text-purple-700 border-purple-200'
+      meta: 'Ready',
     },
     {
       title: 'Documents',
-      icon: '📄',
       path: `/trip/${tripId}/documents`,
       description: `${trip.documents.length} documents stored`,
-      color: 'bg-orange-50 text-orange-700 border-orange-200'
-    }
+      meta: 'Store',
+    },
   ];
 
-  const daysUntil = getDaysUntil(trip.startDate);
+  const handleShareSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    onShareTrip({
+      ownerId: shareForm.ownerId,
+      name: shareForm.name.trim() || undefined,
+      email: shareForm.email.trim() || undefined,
+    });
+    setShareForm({ ownerId: '', name: '', email: '' });
+    setShowShareForm(false);
+  };
 
   return (
     <div>
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <div className="flex justify-between items-start mb-4">
+      <div className="trip-hero mb-6">
+        <div className="flex justify-between items-start mb-4 trip-hero-content">
           <div>
+            <p className="eyebrow">Trip overview</p>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{trip.name}</h1>
             <p className="text-xl text-gray-600 mb-2">{trip.destination}</p>
             <p className="text-gray-500">
@@ -76,36 +93,24 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({ trip }) => {
           </div>
           <div className="text-right">
             {daysUntil > 0 ? (
-              <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                {daysUntil} days to go
-              </div>
+              <div className="status-pill">{daysUntil} days to go</div>
             ) : daysUntil === 0 ? (
-              <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                Today!
-              </div>
+              <div className="status-pill">Starts today</div>
             ) : (
-              <div className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
-                Trip completed
-              </div>
+              <div className="status-pill">Trip completed</div>
             )}
           </div>
         </div>
 
         <div className="flex items-center space-x-4">
           <div className="flex -space-x-2">
-            {trip.travelers.slice(0, 3).map((traveler, index) => (
-              <div
-                key={traveler.id}
-                className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium border-2 border-white"
-                title={traveler.name}
-              >
+            {trip.travelers.slice(0, 3).map((traveler) => (
+              <div key={traveler.id} className="avatar" title={traveler.name}>
                 {traveler.name.charAt(0).toUpperCase()}
               </div>
             ))}
             {trip.travelers.length > 3 && (
-              <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-medium border-2 border-white">
-                +{trip.travelers.length - 3}
-              </div>
+              <div className="avatar avatar-muted">+{trip.travelers.length - 3}</div>
             )}
           </div>
           <span className="text-gray-600">
@@ -120,14 +125,91 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({ trip }) => {
         )}
       </div>
 
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="flex justify-between items-start gap-4 share-header">
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Shared Access</h2>
+            <p className="text-sm text-gray-600">
+              Share your user ID with friends so they can add you to their trips. Add their user ID here to let them access this trip.
+            </p>
+            {currentOwnerId && (
+              <p className="share-id mt-4">
+                Your user ID: <span>{currentOwnerId}</span>
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => setShowShareForm(!showShareForm)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            Share Trip
+          </button>
+        </div>
+
+        {showShareForm && (
+          <form onSubmit={handleShareSubmit} className="share-form mt-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Collaborator user ID *</label>
+              <input
+                required
+                value={shareForm.ownerId}
+                onChange={(event) => setShareForm({ ...shareForm, ownerId: event.target.value })}
+                placeholder="Amplify user ID"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input
+                value={shareForm.name}
+                onChange={(event) => setShareForm({ ...shareForm, name: event.target.value })}
+                placeholder="Travel buddy"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={shareForm.email}
+                onChange={(event) => setShareForm({ ...shareForm, email: event.target.value })}
+                placeholder="friend@example.com"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                Add Collaborator
+              </button>
+              <button type="button" onClick={() => setShowShareForm(false)} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+
+        {collaborators.length > 0 && (
+          <div className="collaborator-list mt-4">
+            {collaborators.map(collaborator => (
+              <div key={collaborator.ownerId} className="collaborator-row">
+                <div>
+                  <p className="font-medium text-gray-900">{collaborator.name || collaborator.email || 'Collaborator'}</p>
+                  <p className="text-sm text-gray-500">{collaborator.ownerId}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onRemoveCollaborator(collaborator.ownerId)}
+                  className="text-red-600 hover:text-red-700 text-sm"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {sections.map((section) => (
-          <Link
-            key={section.title}
-            to={section.path}
-            className={`${section.color} border rounded-lg p-6 hover:shadow-md transition-shadow`}
-          >
-            <div className="text-3xl mb-3">{section.icon}</div>
+          <Link key={section.title} to={section.path} className="feature-card">
+            <div className="feature-kicker">{section.meta}</div>
             <h3 className="text-lg font-semibold mb-2">{section.title}</h3>
             <p className="text-sm opacity-80">{section.description}</p>
           </Link>

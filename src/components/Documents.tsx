@@ -36,23 +36,15 @@ export const Documents: React.FC<DocumentsProps> = ({ trip, onUpdateDocuments })
   };
 
   const documentTypes = [
-    { value: 'flight', label: 'Flight', icon: '✈️' },
-    { value: 'hotel', label: 'Hotel', icon: '🏨' },
-    { value: 'rental', label: 'Car Rental', icon: '🚗' },
-    { value: 'insurance', label: 'Insurance', icon: '🛡️' },
-    { value: 'visa', label: 'Visa/Passport', icon: '📘' },
-    { value: 'tickets', label: 'Event Tickets', icon: '🎫' },
-    { value: 'reservation', label: 'Reservation', icon: '📋' },
-    { value: 'other', label: 'Other', icon: '📄' }
+    { value: 'flight', label: 'Flight' },
+    { value: 'hotel', label: 'Hotel' },
+    { value: 'rental', label: 'Car Rental' },
+    { value: 'insurance', label: 'Insurance' },
+    { value: 'visa', label: 'Visa/Passport' },
+    { value: 'tickets', label: 'Event Tickets' },
+    { value: 'reservation', label: 'Reservation' },
+    { value: 'other', label: 'Other' }
   ];
-
-  const getTypeIcon = (type?: string) => {
-    return documentTypes.find(t => t.value === type)?.icon || '📄';
-  };
-
-  const getTypeLabel = (type?: string) => {
-    return documentTypes.find(t => t.value === type)?.label || 'Other';
-  };
 
   const groupedDocuments = documentTypes.reduce((acc, type) => {
     acc[type.value] = trip.documents.filter(doc => doc.type === type.value);
@@ -95,7 +87,7 @@ export const Documents: React.FC<DocumentsProps> = ({ trip, onUpdateDocuments })
               >
                 {documentTypes.map(type => (
                   <option key={type.value} value={type.value}>
-                    {type.icon} {type.label}
+                    {type.label}
                   </option>
                 ))}
               </select>
@@ -153,7 +145,6 @@ export const Documents: React.FC<DocumentsProps> = ({ trip, onUpdateDocuments })
             <div key={type.value} className="bg-white rounded-lg shadow-sm border">
               <div className="bg-gray-50 px-6 py-4 border-b">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <span className="text-2xl">{type.icon}</span>
                   {type.label}
                   <span className="text-sm font-normal text-gray-500">
                     ({documents.length})
@@ -180,7 +171,7 @@ export const Documents: React.FC<DocumentsProps> = ({ trip, onUpdateDocuments })
                             rel="noopener noreferrer"
                             className="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm"
                           >
-                            🔗 Open Link
+                            Open Link
                             <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
@@ -204,7 +195,6 @@ export const Documents: React.FC<DocumentsProps> = ({ trip, onUpdateDocuments })
 
       {trip.documents.length === 0 && (
         <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-          <div className="text-6xl mb-4">📄</div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No documents yet</h3>
           <p className="text-gray-600 mb-4">
             Store your flight confirmations, hotel bookings, and other important trip information here.

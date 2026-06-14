@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useParams, Navigate, useNavigate } from 'react-router-dom';
+import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css';
+import { generateClient } from 'aws-amplify/data';
+import { getCurrentUser } from 'aws-amplify/auth';
 import { Layout } from './components/Layout';
 import { TripList } from './components/TripList';
 import { CreateTrip } from './components/CreateTrip';
@@ -8,111 +12,203 @@ import { Itinerary } from './components/Itinerary';
 import { Expenses } from './components/Expenses';
 import { Packing } from './components/Packing';
 import { Documents } from './components/Documents';
-import { Trip, ItineraryItem, Expense, PackingItem, DocumentItem } from './types';
-import { sampleTrips } from './mockData';
+import { Trip, Traveler, ItineraryItem, Expense, PackingItem, DocumentItem, Collaborator } from './types';
+import type { Schema } from '../amplify/data/resource';
+
+const client = generateClient<Schema>();
+
+function toTrip(raw: Schema['Trip']['type']): Trip {
+  return {
+    id: raw.id,
+    name: raw.name ?? '',
+    destination: raw.destination ?? '',
+    startDate: raw.startDate ?? '',
+    endDate: raw.endDate ?? '',
+    owners: ((raw.owners as string[] | null) ?? []).filter(Boolean),
+    collaborators: (raw.collaborators as Collaborator[] | null) ?? [],
+    travelers: (raw.travelers as Traveler[] | null) ?? [],
+    itinerary: (raw.itinerary as ItineraryItem[] | null) ?? [],
+    expenses: (raw.expenses as Expense[] | null) ?? [],
+    packing: (raw.packing as PackingItem[] | null) ?? [],
+    documents: (raw.documents as DocumentItem[] | null) ?? [],
+    notes: raw.notes ?? undefined,
+  };
+}
 
 function AppContent() {
-  const [trips, setTrips] = useState<Trip[]>(sampleTrips);
+  const { signOut } = useAuthenticator();
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [currentOwnerId, setCurrentOwnerId] = useState('');
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleCreateTrip = (tripData: Omit<Trip, 'id'>) => {
-    const newTrip: Trip = {
-      ...tripData,
-      id: `trip_${Date.now()}`
-    };
-    setTrips([...trips, newTrip]);
-    navigate(`/trip/${newTrip.id}`);
+  useEffect(() => {
+    Promise.all([
+      getCurrentUser(),
+      client.models.Trip.list(),
+    ])
+      .then(([user, { data }]) => {
+        setCurrentOwnerId(user.userId);
+        setTrips(data.map(toTrip));
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleCreateTrip = async (tripData: Omit<Trip, 'id'>) => {
+    const { data: newTrip, errors } = await client.models.Trip.create({
+      name: tripData.name,
+      destination: tripData.destination,
+      startDate: tripData.startDate,
+      endDate: tripData.endDate,
+      owners: currentOwnerId ? [currentOwnerId] : undefined,
+      collaborators: [],
+      travelers: tripData.travelers,
+      itinerary: tripData.itinerary,
+      expenses: tripData.expenses,
+      packing: tripData.packing,
+      documents: tripData.documents,
+      notes: tripData.notes,
+    });
+    if (errors) { console.error(errors); return; }
+    if (newTrip) {
+      const trip = toTrip(newTrip as Schema['Trip']['type']);
+      setTrips(prev => [...prev, trip]);
+      navigate(`/trip/${trip.id}`);
+    }
   };
 
-  const updateTrip = (tripId: string, updates: Partial<Trip>) => {
-    setTrips(trips.map(trip => 
-      trip.id === tripId ? { ...trip, ...updates } : trip
-    ));
+  const updateTrip = async (tripId: string, updates: Partial<Trip>) => {
+    const { data: updated, errors } = await client.models.Trip.update({ id: tripId, ...updates });
+    if (errors) { console.error(errors); return; }
+    if (updated) {
+      setTrips(prev => prev.map(t => t.id === tripId ? toTrip(updated as Schema['Trip']['type']) : t));
+    }
+  };
+
+  const shareTrip = async (tripId: string, collaborator: Omit<Collaborator, 'id' | 'invitedAt'>) => {
+    const trip = trips.find(t => t.id === tripId);
+    const ownerId = collaborator.ownerId.trim();
+    if (!trip || !ownerId) return;
+
+    const owners = Array.from(new Set([...trip.owners, currentOwnerId, ownerId].filter(Boolean)));
+    const collaborators = [
+      ...trip.collaborators.filter(item => item.ownerId !== ownerId),
+      {
+        ...collaborator,
+        id: `collab_${Date.now()}`,
+        ownerId,
+        invitedAt: new Date().toISOString(),
+      },
+    ];
+
+    await updateTrip(tripId, { owners, collaborators });
+  };
+
+  const removeCollaborator = async (tripId: string, ownerId: string) => {
+    const trip = trips.find(t => t.id === tripId);
+    if (!trip || ownerId === currentOwnerId) return;
+
+    await updateTrip(tripId, {
+      owners: trip.owners.filter(id => id !== ownerId),
+      collaborators: trip.collaborators.filter(item => item.ownerId !== ownerId),
+    });
   };
 
   const TripWrapper = ({ children }: { children: (trip: Trip) => React.ReactNode }) => {
     const { tripId } = useParams();
     const trip = trips.find(t => t.id === tripId);
-    
-    if (!trip) {
-      return <Navigate to="/" replace />;
-    }
-    
+    if (!trip) return <Navigate to="/" replace />;
     return <>{children(trip)}</>;
   };
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', color: '#6b7280' }}>
+        Loading trips...
+      </div>
+    );
+  }
+
   return (
-    <Layout>
+    <Layout onSignOut={signOut}>
       <Routes>
         <Route path="/" element={<TripList trips={trips} />} />
         <Route path="/create" element={<CreateTrip onCreateTrip={handleCreateTrip} />} />
-        <Route 
-          path="/trip/:tripId" 
-          element={
-            <TripWrapper>
-              {(trip) => <TripDashboard trip={trip} />}
-            </TripWrapper>
-          } 
-        />
-        <Route 
-          path="/trip/:tripId/itinerary" 
+        <Route
+          path="/trip/:tripId"
           element={
             <TripWrapper>
               {(trip) => (
-                <Itinerary 
-                  trip={trip} 
-                  onUpdateItinerary={(items: ItineraryItem[]) => 
+                <TripDashboard
+                  trip={trip}
+                  currentOwnerId={currentOwnerId}
+                  onShareTrip={(collaborator) => shareTrip(trip.id, collaborator)}
+                  onRemoveCollaborator={(ownerId) => removeCollaborator(trip.id, ownerId)}
+                />
+              )}
+            </TripWrapper>
+          }
+        />
+        <Route
+          path="/trip/:tripId/itinerary"
+          element={
+            <TripWrapper>
+              {(trip) => (
+                <Itinerary
+                  trip={trip}
+                  onUpdateItinerary={(items: ItineraryItem[]) =>
                     updateTrip(trip.id, { itinerary: items })
-                  } 
+                  }
                 />
               )}
             </TripWrapper>
-          } 
+          }
         />
-        <Route 
-          path="/trip/:tripId/expenses" 
+        <Route
+          path="/trip/:tripId/expenses"
           element={
             <TripWrapper>
               {(trip) => (
-                <Expenses 
-                  trip={trip} 
-                  onUpdateExpenses={(expenses: Expense[]) => 
+                <Expenses
+                  trip={trip}
+                  onUpdateExpenses={(expenses: Expense[]) =>
                     updateTrip(trip.id, { expenses })
-                  } 
+                  }
                 />
               )}
             </TripWrapper>
-          } 
+          }
         />
-        <Route 
-          path="/trip/:tripId/packing" 
+        <Route
+          path="/trip/:tripId/packing"
           element={
             <TripWrapper>
               {(trip) => (
-                <Packing 
-                  trip={trip} 
-                  onUpdatePacking={(items: PackingItem[]) => 
+                <Packing
+                  trip={trip}
+                  onUpdatePacking={(items: PackingItem[]) =>
                     updateTrip(trip.id, { packing: items })
-                  } 
+                  }
                 />
               )}
             </TripWrapper>
-          } 
+          }
         />
-        <Route 
-          path="/trip/:tripId/documents" 
+        <Route
+          path="/trip/:tripId/documents"
           element={
             <TripWrapper>
               {(trip) => (
-                <Documents 
-                  trip={trip} 
-                  onUpdateDocuments={(documents: DocumentItem[]) => 
+                <Documents
+                  trip={trip}
+                  onUpdateDocuments={(documents: DocumentItem[]) =>
                     updateTrip(trip.id, { documents })
-                  } 
+                  }
                 />
               )}
             </TripWrapper>
-          } 
+          }
         />
       </Routes>
     </Layout>
@@ -121,9 +217,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <Authenticator>
+      <Router>
+        <AppContent />
+      </Router>
+    </Authenticator>
   );
 }
 

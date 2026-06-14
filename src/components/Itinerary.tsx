@@ -66,13 +66,13 @@ export const Itinerary: React.FC<ItineraryProps> = ({ trip, onUpdateItinerary })
     onUpdateItinerary(trip.itinerary.filter(item => item.id !== itemId));
   };
 
-  const getTypeIcon = (type?: string) => {
+  const getTypeLabel = (type?: string) => {
     switch (type) {
-      case 'restaurant': return '🍽️';
-      case 'hotel': return '🏨';
-      case 'transport': return '🚗';
+      case 'restaurant': return 'Food';
+      case 'hotel': return 'Stay';
+      case 'transport': return 'Transit';
       case 'activity': 
-      default: return '🎯';
+      default: return 'Activity';
     }
   };
 
@@ -197,7 +197,7 @@ export const Itinerary: React.FC<ItineraryProps> = ({ trip, onUpdateItinerary })
                   <div className="space-y-4">
                     {dayItems.map(item => (
                       <div key={item.id} className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-                        <div className="text-2xl">{getTypeIcon(item.type)}</div>
+                        <div className="type-badge">{getTypeLabel(item.type)}</div>
                         <div className="flex-1">
                           <div className="flex justify-between items-start">
                             <h4 className="font-medium text-gray-900">{item.title}</h4>
@@ -209,10 +209,10 @@ export const Itinerary: React.FC<ItineraryProps> = ({ trip, onUpdateItinerary })
                             </button>
                           </div>
                           {item.startTime && (
-                            <p className="text-sm text-gray-600 mt-1">⏰ {item.startTime}</p>
+                            <p className="text-sm text-gray-600 mt-1">Time: {item.startTime}</p>
                           )}
                           {item.location && (
-                            <p className="text-sm text-gray-600 mt-1">📍 {item.location}</p>
+                            <p className="text-sm text-gray-600 mt-1">Location: {item.location}</p>
                           )}
                           {item.notes && (
                             <p className="text-sm text-gray-700 mt-2">{item.notes}</p>

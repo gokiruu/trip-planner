@@ -80,16 +80,16 @@ export const Expenses: React.FC<ExpensesProps> = ({ trip, onUpdateExpenses }) =>
   const totalExpenses = trip.expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
   const categories = [
-    { value: 'accommodation', label: 'Accommodation', icon: '🏨' },
-    { value: 'food', label: 'Food & Drinks', icon: '🍽️' },
-    { value: 'transport', label: 'Transport', icon: '🚗' },
-    { value: 'activities', label: 'Activities', icon: '🎯' },
-    { value: 'shopping', label: 'Shopping', icon: '🛍️' },
-    { value: 'other', label: 'Other', icon: '💳' }
+    { value: 'accommodation', label: 'Accommodation' },
+    { value: 'food', label: 'Food & Drinks' },
+    { value: 'transport', label: 'Transport' },
+    { value: 'activities', label: 'Activities' },
+    { value: 'shopping', label: 'Shopping' },
+    { value: 'other', label: 'Other' }
   ];
 
-  const getCategoryIcon = (category: string) => {
-    return categories.find(c => c.value === category)?.icon || '💳';
+  const getCategoryLabel = (category: string) => {
+    return categories.find(c => c.value === category)?.label || 'Other';
   };
 
   return (
@@ -178,7 +178,7 @@ export const Expenses: React.FC<ExpensesProps> = ({ trip, onUpdateExpenses }) =>
                 >
                   {categories.map(cat => (
                     <option key={cat.value} value={cat.value}>
-                      {cat.icon} {cat.label}
+                      {cat.label}
                     </option>
                   ))}
                 </select>
@@ -260,11 +260,11 @@ export const Expenses: React.FC<ExpensesProps> = ({ trip, onUpdateExpenses }) =>
               <div key={expense.id} className="p-6">
                 <div className="flex justify-between items-start">
                   <div className="flex items-start gap-3">
-                    <div className="text-2xl">{getCategoryIcon(expense.category || 'other')}</div>
+                    <div className="type-badge">{getCategoryLabel(expense.category || 'other')}</div>
                     <div>
                       <h4 className="font-medium text-gray-900">{expense.description}</h4>
                       <p className="text-sm text-gray-600">
-                        Paid by {getTravelerName(expense.payerId)} • {expense.date}
+                        Paid by {getTravelerName(expense.payerId)} on {expense.date}
                       </p>
                       <p className="text-sm text-gray-600">
                         Split between: {expense.participantIds.map(id => getTravelerName(id)).join(', ')}

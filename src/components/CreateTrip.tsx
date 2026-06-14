@@ -30,6 +30,8 @@ export const CreateTrip: React.FC<CreateTripProps> = ({ onCreateTrip }) => {
 
     const newTrip: Omit<Trip, 'id'> = {
       ...formData,
+      owners: [],
+      collaborators: [],
       travelers: travelersWithIds,
       itinerary: [],
       expenses: [],
@@ -175,7 +177,7 @@ export const CreateTrip: React.FC<CreateTripProps> = ({ onCreateTrip }) => {
                     onClick={() => removeTraveler(index)}
                     className="text-red-600 hover:text-red-700 px-2 py-2"
                   >
-                    ✕
+                    Remove
                   </button>
                 )}
               </div>

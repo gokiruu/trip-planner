@@ -11,14 +11,14 @@ Plan trips with your friends without the chaos. You can:
 - Make shared packing lists so someone remembers the chargers
 - Store all your confirmation numbers and important links
 
-There's a sample trip loaded up so you can click around and see how it works.
-
 ## Built with
 
 - React + TypeScript
 - React Router for navigation
-- Custom CSS (I wanted to practice without using a framework)
-- LocalStorage for now (AWS backend coming later)
+- Custom CSS
+- AWS Amplify Gen 2 for authentication, data, and hosting
+- Amazon Cognito for email/password sign-in
+- AWS AppSync + DynamoDB for owner-scoped trip data
 
 ## Getting it running
 
@@ -29,11 +29,48 @@ npm install
 npm start
 ```
 
-Then open [http://localhost:3000](http://localhost:3000) and you should see the sample trip.
+Then open [http://localhost:3000](http://localhost:3000). The app expects a valid `amplify_outputs.json` file in the project root so it can connect to your Amplify backend.
+
+## AWS Amplify setup
+
+This project is already wired for Amplify Gen 2:
+
+- `amplify/auth/resource.ts` defines email/password authentication.
+- `amplify/data/resource.ts` defines the owner-protected `Trip` model.
+- `src/index.tsx` calls `Amplify.configure(outputs)`.
+- `src/App.tsx` uses Amplify UI's `Authenticator` and the generated data client.
+- `amplify.yml` deploys the backend and frontend in Amplify Hosting.
+
+To create your own local cloud sandbox:
+
+```bash
+npm install
+npx ampx sandbox
+```
+
+Keep the sandbox command running while you develop. It deploys an isolated backend and updates `amplify_outputs.json` with real Cognito and AppSync values.
+
+In another terminal, run:
+
+```bash
+npm start
+```
+
+For public deployment:
+
+1. Push this repository to GitHub.
+2. Open the AWS Amplify console and create a new app from your GitHub repository.
+3. Select the branch you want to deploy.
+4. Use the checked-in `amplify.yml` build settings.
+5. Start the deployment.
+
+Amplify Hosting will run `npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID`, build the React app, and publish the generated `build` folder.
+
+After deployment, use the hosted app URL to create an account. Each signed-in user can only access trips they own because the `Trip` model uses owner authorization.
 
 ## How to use it
 
-The sample trip is a weekend in Lisbon that shows you all the features. You can explore that or create your own trip.
+Create an account, sign in, and create your first trip.
 
 Once you're in a trip, there are tabs for different things:
 
@@ -41,7 +78,7 @@ Once you're in a trip, there are tabs for different things:
 
 **Itinerary** - Add activities, restaurants, hotels, whatever. Organize by day and time. I added categories so you can filter by type.
 
-**Expenses** - This was the fun part to build. Add an expense, say who paid, select who it should be split between, and it calculates who owes who. The algorithm minimizes the number of payments needed (so instead of everyone paying everyone, it figures out the simplest way to settle up).
+**Expenses** - This was the fun part to build. Add an expense, say who paid, select who it should be split between, and it calculates who owes who. The algorithm minimizes the number of payments needed.
 
 **Packing** - Shared checklist. You can assign items to people and check them off as you pack.
 
@@ -49,32 +86,32 @@ Once you're in a trip, there are tabs for different things:
 
 ## Project structure
 
-```
+```text
 src/
 ├── components/       # All the React components
-├── types.ts         # TypeScript definitions
-├── mockData.ts      # Sample trip data
-├── App.tsx          # Main app with routing
-└── index.css        # Custom utilities
-```
+├── types.ts          # TypeScript definitions
+├── App.tsx           # Amplify-backed app with routing
+└── index.css         # Custom utilities
 
-Pretty standard React setup.
+amplify/
+├── auth/resource.ts  # Cognito auth definition
+├── data/resource.ts  # AppSync/DynamoDB data schema
+└── backend.ts        # Backend composition
+```
 
 ## What's next
 
 I'm planning to add:
-- AWS backend (Lambda, DynamoDB, S3) for real multi-user support
-- User authentication with Cognito
 - Real-time updates when friends make changes
+- Shared trips/collaborator invitations
+- File uploads for trip documents with Amplify Storage
 - Maybe a mobile app version if I have time
-
-Right now it's just localStorage, so it's single-user and data doesn't persist across devices. Good enough for the MVP though.
 
 ## Why I built this
 
 I travel with friends pretty often and we always end up with:
-- A shared Google Doc for the itinerary (that gets messy)
-- Splitwise or a notes app for expenses (that someone forgets to update)
+- A shared Google Doc/spreadsheet for the itinerary
+- Splitwise or a notes app for expenses
 - Random texts about "did anyone pack sunscreen?"
 - Screenshots of confirmations scattered across phones
 
