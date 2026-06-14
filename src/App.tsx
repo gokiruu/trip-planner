@@ -17,6 +17,20 @@ import type { Schema } from '../amplify/data/resource';
 
 const client = generateClient<Schema>();
 
+// a.json() only accepts plain objects, not arrays. Wrap arrays in { items: [] } on write,
+// unwrap on read. Handles both fresh data and any legacy raw-array data gracefully.
+function parseJsonArr<T>(value: unknown): T[] {
+  if (value == null) return [];
+  if (Array.isArray(value)) return value as T[];
+  if (typeof value === 'object' && 'items' in (value as object))
+    return ((value as { items: unknown }).items as T[]) ?? [];
+  return [];
+}
+
+function wrapJsonArr<T>(arr: T[]): Record<string, unknown> | undefined {
+  return arr.length > 0 ? { items: arr } : undefined;
+}
+
 function toTrip(raw: Schema['Trip']['type']): Trip {
   return {
     id: raw.id,
@@ -25,12 +39,12 @@ function toTrip(raw: Schema['Trip']['type']): Trip {
     startDate: raw.startDate ?? '',
     endDate: raw.endDate ?? '',
     owners: ((raw.owners as string[] | null) ?? []).filter(Boolean),
-    collaborators: (raw.collaborators as Collaborator[] | null) ?? [],
-    travelers: (raw.travelers as Traveler[] | null) ?? [],
-    itinerary: (raw.itinerary as ItineraryItem[] | null) ?? [],
-    expenses: (raw.expenses as Expense[] | null) ?? [],
-    packing: (raw.packing as PackingItem[] | null) ?? [],
-    documents: (raw.documents as DocumentItem[] | null) ?? [],
+    collaborators: parseJsonArr<Collaborator>(raw.collaborators),
+    travelers: parseJsonArr<Traveler>(raw.travelers),
+    itinerary: parseJsonArr<ItineraryItem>(raw.itinerary),
+    expenses: parseJsonArr<Expense>(raw.expenses),
+    packing: parseJsonArr<PackingItem>(raw.packing),
+    documents: parseJsonArr<DocumentItem>(raw.documents),
     notes: raw.notes ?? undefined,
   };
 }
@@ -56,16 +70,17 @@ function AppContent() {
   }, []);
 
   const handleCreateTrip = async (tripData: Omit<Trip, 'id'>) => {
-    const { data: newTrip, errors } = await client.models.Trip.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: newTrip, errors } = await (client.models.Trip.create as any)({
       name: tripData.name,
       destination: tripData.destination,
       startDate: tripData.startDate,
       endDate: tripData.endDate,
       owners: currentOwnerId ? [currentOwnerId] : undefined,
-      travelers: tripData.travelers.length > 0 ? tripData.travelers : undefined,
+      travelers: wrapJsonArr(tripData.travelers),
       notes: tripData.notes || undefined,
     });
-    if (errors?.length) throw new Error(errors.map(e => e.message).join('; '));
+    if (errors?.length) throw new Error(errors.map((e: { message: string }) => e.message).join('; '));
     if (newTrip) {
       const trip = toTrip(newTrip as Schema['Trip']['type']);
       setTrips(prev => [...prev, trip]);
@@ -73,9 +88,18 @@ function AppContent() {
     }
   };
 
+  const JSON_ARRAY_FIELDS = new Set(['collaborators', 'travelers', 'itinerary', 'expenses', 'packing', 'documents']);
+
   const updateTrip = async (tripId: string, updates: Partial<Trip>) => {
-    const { data: updated, errors } = await client.models.Trip.update({ id: tripId, ...updates });
-    if (errors) { console.error(errors); return; }
+    const payload: Record<string, unknown> = { id: tripId };
+    for (const [key, value] of Object.entries(updates)) {
+      payload[key] = JSON_ARRAY_FIELDS.has(key) && Array.isArray(value)
+        ? wrapJsonArr(value)
+        : value;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: updated, errors } = await (client.models.Trip.update as any)(payload);
+    if (errors?.length) { console.error('Update trip errors:', errors); return; }
     if (updated) {
       setTrips(prev => prev.map(t => t.id === tripId ? toTrip(updated as Schema['Trip']['type']) : t));
     }
