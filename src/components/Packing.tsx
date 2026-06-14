@@ -44,11 +44,6 @@ export const Packing: React.FC<PackingProps> = ({ trip, onUpdatePacking }) => {
     onUpdatePacking(trip.packing.filter(item => item.id !== itemId));
   };
 
-  const getTravelerName = (id?: string) => {
-    if (!id) return 'Unassigned';
-    return trip.travelers.find(t => t.id === id)?.name || 'Unknown';
-  };
-
   const getPackingStats = () => {
     const total = trip.packing.length;
     const packed = trip.packing.filter(item => item.packed).length;
