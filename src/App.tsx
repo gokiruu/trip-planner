@@ -164,6 +164,7 @@ function AppContent() {
                   onShareTrip={(collaborator) => shareTrip(trip.id, collaborator)}
                   onRemoveCollaborator={(ownerId) => removeCollaborator(trip.id, ownerId)}
                   onDeleteTrip={() => deleteTrip(trip.id)}
+                  onUpdateTravelers={(travelers) => updateTrip(trip.id, { travelers })}
                 />
               )}
             </TripWrapper>

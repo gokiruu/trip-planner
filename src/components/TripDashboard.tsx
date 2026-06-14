@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Collaborator, Trip } from '../types';
+import { Collaborator, Traveler, Trip } from '../types';
 
 interface TripDashboardProps {
   trip: Trip;
@@ -8,6 +8,7 @@ interface TripDashboardProps {
   onShareTrip: (collaborator: Omit<Collaborator, 'id' | 'invitedAt'>) => void;
   onRemoveCollaborator: (ownerId: string) => void;
   onDeleteTrip: () => void;
+  onUpdateTravelers: (travelers: Traveler[]) => void;
 }
 
 export const TripDashboard: React.FC<TripDashboardProps> = ({
@@ -16,10 +17,13 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
   onShareTrip,
   onRemoveCollaborator,
   onDeleteTrip,
+  onUpdateTravelers,
 }) => {
   const { tripId } = useParams();
   const [showShareForm, setShowShareForm] = useState(false);
   const [shareForm, setShareForm] = useState({ ownerId: '', name: '', email: '' });
+  const [showTravelerForm, setShowTravelerForm] = useState(false);
+  const [newTraveler, setNewTraveler] = useState({ name: '', email: '' });
 
   const parseLocalDate = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
 
@@ -78,6 +82,23 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
       accent: 'feature-card-documents',
     },
   ];
+
+  const handleAddTraveler = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTraveler.name.trim()) return;
+    const traveler: Traveler = {
+      id: `t${Date.now()}`,
+      name: newTraveler.name.trim(),
+      email: newTraveler.email.trim() || undefined,
+    };
+    onUpdateTravelers([...trip.travelers, traveler]);
+    setNewTraveler({ name: '', email: '' });
+    setShowTravelerForm(false);
+  };
+
+  const handleRemoveTraveler = (id: string) => {
+    onUpdateTravelers(trip.travelers.filter(t => t.id !== id));
+  };
 
   const handleShareSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -152,6 +173,75 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({
         </div>
       </div>
 
+      {/* Travelers */}
+      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Travelers</h2>
+          <button
+            onClick={() => setShowTravelerForm(!showTravelerForm)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          >
+            + Add Traveler
+          </button>
+        </div>
+
+        {showTravelerForm && (
+          <form onSubmit={handleAddTraveler} className="share-form mb-4">
+            <div className="grid grid-cols-2 gap-4" style={{ gridTemplateColumns: '1fr 1fr' }}>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  required
+                  value={newTraveler.name}
+                  onChange={(e) => setNewTraveler({ ...newTraveler, name: e.target.value })}
+                  placeholder="Alex"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={newTraveler.email}
+                  onChange={(e) => setNewTraveler({ ...newTraveler, email: e.target.value })}
+                  placeholder="alex@email.com"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-3">
+              <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                Add
+              </button>
+              <button type="button" onClick={() => setShowTravelerForm(false)} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+
+        {trip.travelers.length === 0 ? (
+          <p className="text-sm text-gray-500 italic">No travelers added yet.</p>
+        ) : (
+          <div className="collaborator-list">
+            {trip.travelers.map(traveler => (
+              <div key={traveler.id} className="collaborator-row">
+                <div>
+                  <p className="font-medium text-gray-900">{traveler.name}</p>
+                  {traveler.email && <p className="text-sm text-gray-500">{traveler.email}</p>}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTraveler(traveler.id)}
+                  className="text-red-600 hover:text-red-700 text-sm"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Shared Access */}
       <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
         <div className="flex justify-between items-start gap-4 share-header">
           <div>
